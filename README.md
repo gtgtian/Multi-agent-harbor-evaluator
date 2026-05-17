@@ -8,7 +8,8 @@ This project is a multi-bug repair benchmark for the `pyreport` Python reporting
 
 ## Dependency
 
-This project is designed to be compatible with the **Harbor** multi-agent framework. The decomposition and coordination patterns follow Harbor conventions, and the `decomposition.yaml` explicitly declares `harbor` as a required framework. To run this benchmark in a multi-agent setting, you should use the Harbor framework for agent orchestration and task execution.
+This project is designed to be compatible with the **Harbor** multi-agent framework. https://github.com/harbor-framework/harbor.git
+The decomposition and coordination patterns follow Harbor conventions, and the `decomposition.yaml` explicitly declares `harbor` as a required framework. To run this benchmark in a multi-agent setting, you should use the Harbor framework for agent orchestration and task execution.
 
 ## Directory Structure
 
