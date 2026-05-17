@@ -1,0 +1,25 @@
+[task]
+name = "swarmbench/a3f7c92e14b05d81-SWARMBENCH-FANOUT-CODE-SWE-PYREPORT-OCTABUG"
+description = "Fix eight independent bugs in pyreport, a lightweight Python reporting library: truncate returning oversized strings (formatter.py), wrong denominator in weighted average (stats.py), exclusive end-date in date range filter (filters.py), None fields silently dropped during serialization (serializer.py), last group discarded by group_by (aggregator.py), email regex accepting no-TLD addresses (validator.py), 0-indexed pagination breaking page=1 (pager.py), and deep_merge overwriting instead of concatenating lists (merger.py)."
+
+[metadata]
+verifier_type = "executable"
+domain = "code-swe"
+coordination_pattern = "fan-out-synthesize"
+human_solving_hours_estimate = 8.0
+human_solving_hours_justification = "Eight isolated bugs across eight separate modules. Each requires reading the module docstring, understanding the contract, locating the off-by-one or logic error, and applying a 1-3 line fix. A senior Python developer spends ~30 min per bug on average (reading context, writing the fix, testing locally). Eight bugs × 30 min = ~4 hours baseline, plus 2 hours for cross-module integration testing and writing the fixes.json summary = ~6-8 hours total."
+estimated_sub_agents = 9
+input_token_estimate = 60000
+reference_link = "https://github.com/pallets/flask/blob/main/CHANGES.rst"
+why_multi_agent = "Each of the eight bugs lives in a different module with no cross-module dependencies; they can be diagnosed and fixed completely in parallel. A single agent must context-switch across eight independent problem domains sequentially, accumulating context across the full library and losing focus between modules. Attention degradation across eight distinct bug signatures makes it likely to miss subtle errors in later modules. Eight parallel sub-agents each own one module exclusively, diagnose the bug in clean isolated context, and produce a fix. A synthesizer verifies that all eight fixes are present and consistent, then assembles fixes.json. The reducer step is verifiable because each fix is independently testable."
+
+[agent]
+timeout_sec = 600
+
+[verifier]
+timeout_sec = 300
+
+[environment]
+cpus = 2
+memory_mb = 4096
+build_timeout_sec = 600

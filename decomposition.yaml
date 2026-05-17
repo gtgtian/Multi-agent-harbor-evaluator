@@ -1,0 +1,120 @@
+coordination_pattern: fan-out-synthesize
+
+sub_tasks:
+  - id: fix_formatter_truncate
+    description: >
+      Inspect /workspace/pyreport/formatter.py and fix the `truncate` function.
+      The function is documented to return a string of at most `max_len` characters,
+      including any ellipsis suffix. Identify the exact line that causes the output
+      to exceed `max_len` and correct it so that the ellipsis is factored into the
+      slice boundary. Do not change any other function in this file.
+      After fixing, verify that truncate("HelloWorld", 8) returns a string of
+      length <= 8 ending with "...".
+    depends_on: []
+    parallel_group: fix
+
+  - id: fix_stats_weighted_average
+    description: >
+      Inspect /workspace/pyreport/stats.py and fix the `weighted_average` function.
+      The function computes a weighted average of a list of values using a
+      corresponding list of weights. Identify the incorrect denominator used in the
+      final division and replace it with the mathematically correct value.
+      Do not change mean, median, or variance.
+      After fixing, verify that weighted_average([1.0, 2.0, 3.0], [1.0, 1.0, 8.0])
+      returns 2.7.
+    depends_on: []
+    parallel_group: fix
+
+  - id: fix_filters_date_range
+    description: >
+      Inspect /workspace/pyreport/filters.py and fix the `filter_date_range` function.
+      The function is documented to include records where
+      start_date <= record_date <= end_date (inclusive on both ends).
+      Find the comparison operator that makes the range half-open and correct it.
+      Do not change filter_by_value or filter_top_n.
+      After fixing, verify that a row with date == end_date is included in the result.
+    depends_on: []
+    parallel_group: fix
+
+  - id: fix_serializer_none_fields
+    description: >
+      Inspect /workspace/pyreport/serializer.py and fix the `serialize_record` function.
+      The function must produce an output dict that contains every field listed in
+      _SCHEMA_FIELDS, even when the field value is None (which should serialize to
+      JSON null). Find the guard that silently drops None values and remove it.
+      Do not change serialize_records or to_json.
+      After fixing, verify that serialize_record({"id":"r1","name":"A","category":None,...})
+      contains "category": None in the output.
+    depends_on: []
+    parallel_group: fix
+
+  - id: fix_aggregator_group_by
+    description: >
+      Inspect /workspace/pyreport/aggregator.py and fix the `group_by` function.
+      The function groups rows (assumed pre-sorted by key) into a dict.
+      Find the missing statement that causes the final group of rows to be discarded
+      and add it in the correct place. Do not change sum_column or count_distinct.
+      After fixing, verify that grouping [{"cat":"A"},{"cat":"A"},{"cat":"B"},{"cat":"C"}]
+      by "cat" returns a dict containing keys A, B, and C.
+    depends_on: []
+    parallel_group: fix
+
+  - id: fix_validator_email
+    description: >
+      Inspect /workspace/pyreport/validator.py and fix the `validate_email` function.
+      The compiled regex has two problems: it accepts email addresses with no dot in
+      the domain part (missing TLD), and it accepts an empty local part before the @.
+      Rewrite the regex constant _EMAIL_RE so that:
+        - the local part requires at least one character,
+        - the domain part requires at least one dot and a TLD of 2+ letters.
+      Do not change validate_positive_number or validate_record.
+      After fixing, verify that validate_email("user@domain") returns False and
+      validate_email("user@example.com") returns True.
+    depends_on: []
+    parallel_group: fix
+
+  - id: fix_pager_paginate
+    description: >
+      Inspect /workspace/pyreport/pager.py and fix the `paginate` function.
+      The function documents a 1-indexed page API: page=1 should return the first
+      page_size items. Find the start-index calculation that treats pages as 0-indexed
+      and correct it to be 1-indexed. Do not change total_pages.
+      After fixing, verify that paginate(list(range(20)), page=1, page_size=5)
+      returns [0, 1, 2, 3, 4].
+    depends_on: []
+    parallel_group: fix
+
+  - id: fix_merger_deep_merge
+    description: >
+      Inspect /workspace/pyreport/merger.py and fix the `deep_merge` function.
+      When both the base dict and the override dict have a list value for the same key,
+      the function is documented to concatenate the lists (base list + override list).
+      Find the branch that instead overwrites the base list and change it to concatenate.
+      Do not change merge_shards.
+      After fixing, verify that deep_merge({"tags": ["a","b"]}, {"tags": ["c","d"]})
+      returns {"tags": ["a","b","c","d"]}.
+    depends_on: []
+    parallel_group: fix
+
+  - id: synthesize_and_verify
+    description: >
+      Read the outputs of all eight fix sub-agents and perform final integration.
+      For each of the eight modules, confirm that the fix has been applied to
+      /workspace/pyreport/<module>.py by inspecting the source.
+      Run /workspace/test_cases.py tests mentally or with pytest to confirm each fixed
+      function passes. Resolve any conflicts if two fixes touched the same file
+      (there should be none by design).
+      Finally, write /logs/agent/fixes.json with exactly 8 entries, one per module,
+      each containing the keys: module, function, bug_description, fix_description.
+      The file must be valid JSON and must include all eight modules:
+      formatter, stats, filters, serializer, aggregator, validator, pager, merger.
+    depends_on:
+      - fix_formatter_truncate
+      - fix_stats_weighted_average
+      - fix_filters_date_range
+      - fix_serializer_none_fields
+      - fix_aggregator_group_by
+      - fix_validator_email
+      - fix_pager_paginate
+      - fix_merger_deep_merge
+    parallel_group: synthesize
